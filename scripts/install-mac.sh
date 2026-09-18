@@ -19,9 +19,11 @@ for cmd in git node npm; do
   fi
 done
 
+NODE_VERSION="$(node -p 'process.versions.node')"
 NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
-if (( NODE_MAJOR < 20 )); then
-  echo "ERROR: Node.js 20+ is required. Found $(node -v)." >&2
+NODE_MINOR="$(node -p 'process.versions.node.split(".")[1]')"
+if (( NODE_MAJOR < 20 || (NODE_MAJOR == 20 && NODE_MINOR < 19) )); then
+  echo "ERROR: Vite 8 requires Node.js 20.19+ or 22.12+. Found $(node -v)." >&2
   exit 1
 fi
 
@@ -48,6 +50,10 @@ echo "Running project setup checks..."
 npm run setup
 
 echo
+echo "Running diagnostics..."
+npm run doctor
+
+echo
 echo "Building..."
 npm run build
 
@@ -59,7 +65,7 @@ echo
 echo "Setup checks completed successfully."
 echo "Start JARVIS with:"
 echo "  cd \"$ROOT\""
-echo "  JARVIS_ALLOW_WRITES=0 npm start"
+echo "  npm run start:safe"
 echo
 echo "Then open http://localhost:5173 in Chrome or Edge, click INITIALISE,"
 echo "allow microphone access, and say: Hey Jarvis"
