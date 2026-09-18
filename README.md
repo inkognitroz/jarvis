@@ -25,8 +25,7 @@ can have — Node.js and Chrome. That's the whole list.
   or the platform installer at <https://docs.claude.com/en/docs/claude-code> —
   then run `claude` once and complete login. The bridge reuses that login. **No
   API key**, and usage is billed to your existing Claude account.
-- **Node.js 20 or newer** — free, one installer from <https://nodejs.org>. This
-  is a Node web app, so it is the one unavoidable tool.
+- **Node.js 20.19+ or 22.12+** — required by Vite 8. Install an active LTS release from <https://nodejs.org>. This is a Node web app, so it is the one unavoidable tool.
 - **Google Chrome or Microsoft Edge**, in a **real browser window** — not an
   embedded preview pane. Preview panes (including the one inside editors and
   Claude Code) block microphone access, so the page loads and looks right but
@@ -35,8 +34,9 @@ can have — Node.js and Chrome. That's the whole list.
   gives a better voice and sharper transcription; the free tier is plenty for a
   demo. Without it, everything runs on the browser's own speech.
 
-Run `npm run setup` after cloning and it checks all of this for you, in plain
-language.
+Run `npm run setup` after cloning and it checks the basics in plain language.
+For a stricter diagnostic pass, run `npm run doctor`; it also checks ports,
+browser presence, Claude config and configured MCP server names without printing secrets.
 
 ---
 
@@ -47,6 +47,8 @@ First, install, then start it:
 ```bash
 npm install
 npm start          # runs the brain and the face together
+npm run start:safe # explicit read-only first run
+npm run doctor     # local diagnostics
 ```
 
 Then open the URL it prints (http://localhost:5173) in **Chrome**, click **INITIALISE**, and say **“Hey Jarvis”**.
@@ -228,6 +230,7 @@ Everything is optional in bridge mode. Frontend settings live in `.env.local`
 | `JARVIS_MODEL` | `claude-opus-5` | Model to run |
 | `JARVIS_EFFORT` | `medium` | Reasoning effort |
 | `JARVIS_ALLOW_WRITES` | off | `1` allows effectful tools (see below) |
+| `JARVIS_MCP_SERVERS` | — | Optional comma-separated MCP server allowlist; unset preserves all configured servers |
 | `JARVIS_ALLOWED_ORIGINS` | local dev | Extra WebSocket origins to accept |
 | `JARVIS_ALLOW_NO_ORIGIN` | off | Accept connections with no `Origin` header |
 | `JARVIS_FILE_ROOTS` | — | Roots the `/file` endpoint may serve from |
