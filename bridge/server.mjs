@@ -163,11 +163,25 @@ function configuredServers() {
     const cfg = JSON.parse(
       readFileSync(join(homedir(), '.claude.json'), 'utf8'),
     )
-    return {
+    const all = {
       ...(cfg.mcpServers ?? {}),
       // Servers scoped to the home directory apply too, since that's our cwd.
       ...(cfg.projects?.[homedir()]?.mcpServers ?? {}),
     }
+
+    // Optional least-privilege mode. When JARVIS_MCP_SERVERS is set, only
+    // explicitly named MCP servers are handed to the Agent SDK. Leaving it
+    // unset preserves the upstream behaviour and exposes every configured MCP.
+    const allow = new Set(
+      (process.env.JARVIS_MCP_SERVERS ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    )
+    if (allow.size === 0) return all
+    return Object.fromEntries(
+      Object.entries(all).filter(([name]) => allow.has(name)),
+    )
   } catch {
     return {}
   }
@@ -684,7 +698,15 @@ const handleRequest = async (req, res) => {
     // student with nothing configured still has a working assistant.
     const eleven = Boolean(elevenKey())
     res.writeHead(200, { ...cors, 'content-type': 'application/json' })
-    return res.end(JSON.stringify({ ok: true, tts: eleven, stt: eleven }))
+    return res.end(JSON.stringify({
+      ok: true,
+      tts: eleven,
+      stt: eleven,
+      model: MODEL,
+      effort: EFFORT,
+      writes: ALLOW_WRITES,
+      mcpServers: Object.keys(MCP_SERVERS).length,
+    }))
   }
 
   // Serve local image files to the page. Screenshots and generated art land on
